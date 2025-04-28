@@ -1,5 +1,3 @@
-# Argo Navigation - Boating App
-
 This is a React application that displays POIs (Points of Interest) on a Google Map using the Boat Navigation API.
 
 ## Setup
