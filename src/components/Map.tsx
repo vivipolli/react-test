@@ -10,24 +10,8 @@ import {
 } from '@vis.gl/react-google-maps';
 import { useAppDispatch, useAppSelector } from '../store';
 import { fetchPOIs } from '../store/poisSlice';
+import { POI, POIResponse } from '../types/poi';
 import debounce from 'lodash/debounce';
-
-interface POI {
-  id: number;
-  latitude: number;
-  longitude: number;
-  name: string;
-  poi_type: string;
-  partner: string;
-  info: Record<string, any>;
-}
-
-interface POIResponse {
-  status: string;
-  data: {
-    items: POI[];
-  };
-}
 
 const getMarkerIcon = (type: string) => {
   const icons = {
@@ -133,18 +117,9 @@ const MapComponent = () => {
           style={{ width: '100%', height: '100%' }}
           mapId={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
           gestureHandling="greedy"
-          disableDefaultUI={false}
-          zoomControl={true}
           mapTypeControl={true}
-          scaleControl={true}
-          streetViewControl={true}
-          rotateControl={true}
-          fullscreenControl={true}
           minZoom={2}
           maxZoom={20}
-          clickableIcons={true}
-          keyboardShortcuts={true}
-          scrollwheel={true}
         >
           {status === 'succeeded' && markers}
           {selectedPOI && (

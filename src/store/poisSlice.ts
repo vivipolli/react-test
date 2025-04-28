@@ -1,42 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-
-interface POI {
-  id: number;
-  latitude: number;
-  longitude: number;
-  name: string;
-  poi_type: string;
-  partner: string;
-  info: Record<string, any>;
-  updated_at: string;
-}
-
-interface POIResponse {
-  status: string;
-  data: {
-    items: POI[];
-  };
-}
-
-interface POICache {
-  [key: string]: {
-    pois: POI[];
-    lastUpdated: string;
-    bounds: {
-      swLat: number;
-      swLng: number;
-      neLat: number;
-      neLng: number;
-    };
-  };
-}
-
-interface POIState {
-  pois: POIResponse;
-  status: 'idle' | 'loading' | 'succeeded' | 'failed';
-  error: string | null;
-  cache: POICache;
-}
+import {POIResponse, POIState, POIBounds } from '../types/poi';
 
 const initialState: POIState = {
   pois: {
@@ -56,20 +19,15 @@ const getFromDate = () => {
   return date.toISOString().split('T')[0];
 };
 
-const generateCacheKey = (bounds: { swLat: number; swLng: number; neLat: number; neLng: number }) => {
+const generateCacheKey = (bounds: POIBounds) => {
   return `${bounds.swLat},${bounds.swLng},${bounds.neLat},${bounds.neLng}`;
 };
 
 export const fetchPOIs = createAsyncThunk(
   'pois/fetchPOIs',
-  async ({ swLat, swLng, neLat, neLng }: {
-    swLat: number;
-    swLng: number;
-    neLat: number;
-    neLng: number;
-  }, { getState }) => {
+  async (bounds: POIBounds, { getState }) => {
     const state = getState() as { pois: POIState };
-    const cacheKey = generateCacheKey({ swLat, swLng, neLat, neLng });
+    const cacheKey = generateCacheKey(bounds);
     const cachedData = state.pois.cache[cacheKey];
 
     // If we have cached data and it's less than 1 hour old, use it
@@ -83,14 +41,13 @@ export const fetchPOIs = createAsyncThunk(
     }
 
     const params = new URLSearchParams({
-      sw_latitude: swLat.toFixed(6),
-      sw_longitude: swLng.toFixed(6),
-      ne_latitude: neLat.toFixed(6),
-      ne_longitude: neLng.toFixed(6),
+      sw_latitude: bounds.swLat.toFixed(6),
+      sw_longitude: bounds.swLng.toFixed(6),
+      ne_latitude: bounds.neLat.toFixed(6),
+      ne_longitude: bounds.neLng.toFixed(6),
       from_date: getFromDate()
     });
 
-    console.log('Fetching POIs with params:', Object.fromEntries(params));
 
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/optimized_lists/pois/upsert?${params}`);
     const data = await response.json();
